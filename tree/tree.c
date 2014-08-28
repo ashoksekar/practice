@@ -1,58 +1,100 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <list.h>
+#include "tree.h"
 
 typedef struct node_s {
 	void *data;
 	void *child;
-} node_t;
+} tnode_t;
 
 typedef struct ctrl_s {
-	node_t *root;
-	node_t *n;
-}ctrl_t;
+	tnode_t *root;
+}tctrl_t;
 
-static node_t *search_node(node_t *root, unsigned int data)
+void *tree_init(void) 
 {
+	return calloc(1, sizeof(tctrl_t));
+}
+
+static void *tree_traverse_bfs(tctrl_t *ctrl, void *queue, int (*cb)(void *,
+							   void *), void *arg)
+{
+	tnode_t *n = NULL;
+	
+	while ((n = list_remove_node(queue, TAIL)) != NULL) 
+	{
+		if (cb(n->data, arg))
+			break;
+		if (n->child)
+			list_append(queue, n->child, STRAIGHT, HEAD);
+	}
+	return n;
+
+}
+static void *tree_traverse_dfs(tctrl_t *ctrl, void *stack, int (*cb)(void *,
+							   void *), void *arg)
+{
+	tnode_t *n = NULL;
+	
+	while ((n = list_remove_node(stack, HEAD)) != NULL) 
+	{
+		if (cb(n->data, arg))
+			break;
+		if (n->child)
+			list_append(stack, n->child, REVERSE, HEAD);
+	}
+	return n;
 
 }
 
-void *init_tree(void) 
-{
-	return calloc(1, sizeof(ctrl_t));
-}
 
-void traverse_tree(void *ctrl_v, ttype_t type, int (*cb)(void *,
+void *tree_traverse(void *ctrl_v, ttype_t type, int (*cb)(void *,
 							void *), void *arg) 
 {
+	void *ret = NULL;
+	tctrl_t *ctrl = (tctrl_t *)ctrl_v;
+	if (!ctrl->root)
+		return ret;
+
+	if (type == BFS) {
+		void *queue = list_init();
+		list_add_node(queue, ctrl->root, HEAD);
+		ret = tree_traverse_bfs(ctrl, queue, cb, arg);
+		list_free(queue);
+	}
+	else if (type == DFS) {
+		void *stack = list_init();
+		list_add_node(stack, ctrl->root, HEAD);
+		ret = tree_traverse_dfs(ctrl, stack, cb, arg);
+		list_free(stack);
+	}
+	return ret;
+}
+
+void tree_free(void *ctrl_v)
+{
 
 }
 
-static int compare_data(void *ctrl_v, void *data1, void *data2) 
+void tree_add_node(void *ctrl_v, void *pnode, void *data) 
 {
-	if (data1 == data2)
-		return true;
-	return false;
-}
+	tctrl_t *ctrl = (tctrl_t *)ctrl_v;
+	tnode_t *n = NULL, *parent = NULL;
 
-void add_node(void *ctrl_v, void *pdata, void *data) 
-{
-	ctrl_t *ctrl = (ctrl_t *)ctrl_v;
-	node_t *n = NULL;
+	parent = (tnode_t *)pnode;
 
-	traverse_tree(ctrl, BFS, compare_data, pdata);
-	parent = ctrl->n;
-
+	n = calloc(1, sizeof(tnode_t));
+	n->child = list_init();
+	n->data = data;
 	if (parent) {
-		n = calloc(1, sizeof(node_t));
-		n->child = init_list();
-		n->data = data;
-		add_node(parent->child, n, END);
+		list_add_node(parent->child, n, HEAD);
+	}
+	else {
+		ctrl->root = n;
 	}
 
 	return;
 }
 
-int main()
-{
-
-}
 
