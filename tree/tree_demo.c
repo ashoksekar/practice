@@ -49,7 +49,7 @@ int main()
 					data = (int *)calloc (1, sizeof(*data));
 					printf ("Enter data: ");
 					scanf ("%d", data);
-					n = tree_add_node(root, pnode, data);
+					n = tree_add_node(pnode, data);
 					if (!root)
 						root = n;
 				}

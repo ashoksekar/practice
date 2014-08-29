@@ -57,6 +57,8 @@ void list_traverse(void *ctrl_v, type_t type, int (*cb)(void *, void *),
 	lctrl_t *ctrl = (lctrl_t *)ctrl_v;
 	lnode_t *n;
 
+	if (!ctrl)
+		return;
 	if (type == HEAD) {
 		n = ctrl->head;
 		while (n) {
@@ -80,7 +82,7 @@ void list_add_node(void *ctrl_v, void *data, type_t type)
 	lctrl_t *ctrl = (lctrl_t *)ctrl_v;
 	lnode_t *n = NULL;
 
-	if (!data)
+	if (!data || !ctrl)
 		return;
 	n = calloc(1, sizeof(lnode_t));
 	n->data = data;

@@ -13,7 +13,7 @@ static void *tree_traverse_bfs(void *n_v, void *queue, int (*cb)(void *,
 {
 	tnode_t *n = NULL;
 	
-	while ((n = list_remove_node(queue, TAIL)) != NULL) 
+	while ((n = list_remove_node(queue, TAIL)) != NULL)
 	{
 		if (cb(n->data, arg))
 			break;
@@ -39,6 +39,38 @@ static void *tree_traverse_dfs(void *n_v, void *stack, int (*cb)(void *,
 
 }
 
+struct cb_s {
+	int (*cb)(void *,void *);
+	void *arg;
+	void *ret;
+};
+int tree_traverse_bfs_level_cb(void *data, void *arg)
+{
+	struct cb_s *_cb = (struct cb_s *)arg;
+	tnode_t *n = (tnode_t *)data;
+	int ret = 0;
+	ret = _cb->cb(n->data, _cb->arg);
+	if (ret)
+		_cb->ret = n;
+	return ret;
+}
+
+void *tree_traverse_bfs_level(void *n_v, int (*cb)(void *,
+							void *), void *arg)
+{
+	void *ret = NULL;
+	tnode_t *n= (tnode_t *)n_v;
+	if (!n)
+		return ret;
+	struct cb_s _cb;
+
+	_cb.cb = cb;
+	_cb.arg = arg;
+	_cb.ret = NULL;
+
+	list_traverse(n->child, HEAD, tree_traverse_bfs_level_cb, &_cb);
+	return _cb.ret;
+}
 
 void *tree_traverse(void *n_v, ttype_t type, int (*cb)(void *,
 							void *), void *arg) 
@@ -68,7 +100,7 @@ void tree_free(void *n_v)
 
 }
 
-void *tree_add_node(void *n_v, void *pnode, void *data) 
+void *tree_add_node(void *pnode, void *data) 
 {
 	tnode_t *n = NULL, *parent = NULL;
 
