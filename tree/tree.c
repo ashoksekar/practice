@@ -8,16 +8,7 @@ typedef struct node_s {
 	void *child;
 } tnode_t;
 
-typedef struct ctrl_s {
-	tnode_t *root;
-}tctrl_t;
-
-void *tree_init(void) 
-{
-	return calloc(1, sizeof(tctrl_t));
-}
-
-static void *tree_traverse_bfs(tctrl_t *ctrl, void *queue, int (*cb)(void *,
+static void *tree_traverse_bfs(void *n_v, void *queue, int (*cb)(void *,
 							   void *), void *arg)
 {
 	tnode_t *n = NULL;
@@ -32,7 +23,7 @@ static void *tree_traverse_bfs(tctrl_t *ctrl, void *queue, int (*cb)(void *,
 	return n;
 
 }
-static void *tree_traverse_dfs(tctrl_t *ctrl, void *stack, int (*cb)(void *,
+static void *tree_traverse_dfs(void *n_v, void *stack, int (*cb)(void *,
 							   void *), void *arg)
 {
 	tnode_t *n = NULL;
@@ -49,52 +40,49 @@ static void *tree_traverse_dfs(tctrl_t *ctrl, void *stack, int (*cb)(void *,
 }
 
 
-void *tree_traverse(void *ctrl_v, ttype_t type, int (*cb)(void *,
+void *tree_traverse(void *n_v, ttype_t type, int (*cb)(void *,
 							void *), void *arg) 
 {
 	void *ret = NULL;
-	tctrl_t *ctrl = (tctrl_t *)ctrl_v;
-	if (!ctrl->root)
+	tnode_t *n= (tnode_t *)n_v;
+	if (!n)
 		return ret;
 
 	if (type == BFS) {
 		void *queue = list_init();
-		list_add_node(queue, ctrl->root, HEAD);
-		ret = tree_traverse_bfs(ctrl, queue, cb, arg);
+		list_add_node(queue, n, HEAD);
+		ret = tree_traverse_bfs(n, queue, cb, arg);
 		list_free(queue);
 	}
 	else if (type == DFS) {
 		void *stack = list_init();
-		list_add_node(stack, ctrl->root, HEAD);
-		ret = tree_traverse_dfs(ctrl, stack, cb, arg);
+		list_add_node(stack, n, HEAD);
+		ret = tree_traverse_dfs(n, stack, cb, arg);
 		list_free(stack);
 	}
 	return ret;
 }
 
-void tree_free(void *ctrl_v)
+void tree_free(void *n_v)
 {
 
 }
 
-void tree_add_node(void *ctrl_v, void *pnode, void *data) 
+void *tree_add_node(void *n_v, void *pnode, void *data) 
 {
-	tctrl_t *ctrl = (tctrl_t *)ctrl_v;
 	tnode_t *n = NULL, *parent = NULL;
 
 	parent = (tnode_t *)pnode;
 
 	n = calloc(1, sizeof(tnode_t));
-	n->child = list_init();
 	n->data = data;
 	if (parent) {
+		if (!parent->child)
+			parent->child = list_init();
 		list_add_node(parent->child, n, HEAD);
 	}
-	else {
-		ctrl->root = n;
-	}
 
-	return;
+	return n;
 }
 
 

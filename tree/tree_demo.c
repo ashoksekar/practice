@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <list.h>
 #include <tree.h>
+#include <assert.h>
 
 static int compare_data(void *ndata, void *arg)
 {
@@ -22,8 +23,7 @@ static int print_tree(void *ndata, void *arg)
 int main()
 {
 	int choice = 0;
-	void *tree = tree_init();
-
+	void *root = NULL;
 	while (1) {
 
 		printf ("1. Add node\n");
@@ -37,23 +37,29 @@ int main()
 			case 1:
 				{
 					int *data = NULL, parent;
-					void *pnode = NULL;
+					void *pnode = NULL, *n = NULL;
 
 					printf ("Enter parent: ");
 					scanf ("%d", &parent);
-					pnode = tree_traverse(tree, BFS, compare_data, &parent);
+					pnode = tree_traverse(root, BFS, compare_data, &parent);
+					if (!pnode)
+					{
+						assert(!root);
+					}
 					data = (int *)calloc (1, sizeof(*data));
 					printf ("Enter data: ");
 					scanf ("%d", data);
-					tree_add_node(tree, pnode, data);
+					n = tree_add_node(root, pnode, data);
+					if (!root)
+						root = n;
 				}
 				break;
 			case 2:
-				tree_traverse(tree, BFS, print_tree, NULL);
+				tree_traverse(root, BFS, print_tree, NULL);
 				printf ("\n");
 				break;
 			case 3:
-				tree_traverse(tree, DFS, print_tree, NULL);
+				tree_traverse(root, DFS, print_tree, NULL);
 				printf ("\n");
 				break;
 			case 4:
