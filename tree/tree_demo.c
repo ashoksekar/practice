@@ -4,7 +4,7 @@
 #include <tree.h>
 #include <assert.h>
 
-static int compare_data(void *ndata, void *arg)
+static int compare_data(void *ndata, int level, void *arg)
 {
 	if (!ndata || !arg)
 		return 0;
@@ -12,11 +12,11 @@ static int compare_data(void *ndata, void *arg)
 		return 1;
 	return 0;
 }
-static int print_tree(void *ndata, void *arg)
+static int print_tree(void *ndata, int level, void *arg)
 {
 	if (!ndata)
 		return 0;
-	printf ("%d ", *(int *)ndata);
+	printf ("%d %d\n", *(int *)ndata, level);
 	return 0;
 }
 

@@ -6,16 +6,18 @@
 typedef struct node_s {
 	void *data;
 	void *child;
+	int level;
+	struct node_s *parent;
 } tnode_t;
 
 static void *tree_traverse_bfs(void *n_v, void *queue, int (*cb)(void *,
-							   void *), void *arg)
+							   int level, void *), void *arg)
 {
 	tnode_t *n = NULL;
 	
 	while ((n = list_remove_node(queue, TAIL)) != NULL)
 	{
-		if (cb(n->data, arg))
+		if (cb(n->data, n->level, arg))
 			break;
 		if (n->child)
 			list_append(queue, n->child, STRAIGHT, HEAD);
@@ -24,13 +26,13 @@ static void *tree_traverse_bfs(void *n_v, void *queue, int (*cb)(void *,
 
 }
 static void *tree_traverse_dfs(void *n_v, void *stack, int (*cb)(void *,
-							   void *), void *arg)
+							   int level, void *), void *arg)
 {
 	tnode_t *n = NULL;
 	
 	while ((n = list_remove_node(stack, HEAD)) != NULL) 
 	{
-		if (cb(n->data, arg))
+		if (cb(n->data, n->level, arg))
 			break;
 		if (n->child)
 			list_append(stack, n->child, REVERSE, HEAD);
@@ -73,7 +75,7 @@ void *tree_traverse_bfs_level(void *n_v, int (*cb)(void *,
 }
 
 void *tree_traverse(void *n_v, ttype_t type, int (*cb)(void *,
-							void *), void *arg) 
+							int level, void *), void *arg) 
 {
 	void *ret = NULL;
 	tnode_t *n= (tnode_t *)n_v;
@@ -112,6 +114,8 @@ void *tree_add_node(void *pnode, void *data)
 		if (!parent->child)
 			parent->child = list_init();
 		list_add_node(parent->child, n, HEAD);
+		n->parent = parent;
+		n->level = parent->level + 1;
 	}
 
 	return n;

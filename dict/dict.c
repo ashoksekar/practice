@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,7 +9,7 @@
 
 #define MAX_WORD_SIZE 100
 
-static int _compare_cb(void *data, void *arg)
+static int _compare_cb(void *data, int level, void *arg)
 {
 	char *c = (char *)data;
 	char *cmp = (char *)arg;
@@ -50,7 +51,7 @@ struct eol_s {
 	int max;
 	int current;
 };
-static int check_end_of_line(void *data, void *arg)
+static int check_end_of_line(void *data, int level, void *arg)
 {
 	char *c = (char *)data;
 	struct eol_s *s = (struct eol_s *)arg;
@@ -70,6 +71,89 @@ static int find_max_words(void *n)
 	return arg.current;
 }
 
+#define MAX_SUGGESTIONS 10
+static char sugg_buf[MAX_WORD_SIZE] = {0};
+static int num_words = 0;
+static int possible_words(void *data, int level, void *arg)
+{
+	char *c = (char *)data;
+
+	if (*c == '\r')
+	{
+		printf ("%s ", sugg_buf);
+		num_words++;
+	}
+	else {
+		if (level)
+			level -= 1;
+		sugg_buf[level] = *c;
+		sugg_buf[level+1] = '\0';
+	}
+
+	if (num_words >= MAX_SUGGESTIONS)
+		return 1;
+	return 0;
+}
+
+static void dict_input_word(void *root, char *buf)
+{
+	char *c = buf;
+	void *n = root;
+	while (*c != '\0')
+	{
+		n = tree_traverse_bfs_level(n, _compare_cb, c); 
+		if (!n) {
+			break;
+		}
+		c++;
+	}
+	if (!n)
+		printf ("No suggestions!");
+	else {
+		num_words = 0;
+		strncpy(sugg_buf, buf, strlen(buf)-1);
+		tree_traverse(n, DFS, possible_words, NULL); 
+	}
+
+	return;
+}
+
+static void dict(void *root)
+{
+	system ("stty raw -echo\n");
+	char buf[MAX_WORD_SIZE] = {0};
+	int p = 0;
+
+	while(1)
+	{
+		int c = getchar();
+
+		if (c == 13) // enter
+			break;
+		else if (c == 127) // backspace
+		{
+			if (p)
+				buf[--p] = '\0';
+		}
+		else
+			buf[p++] = (char)c;
+
+		printf ("\33[2K\r"); // clear and go to next line
+		printf ("%s", buf);
+		printf ("\r\n");
+		printf ("\33[2K");
+		if (p) 
+			dict_input_word(root, buf);
+		printf ("\033[1A"); // Go up one line
+		printf ("\33[2K\r");
+		printf ("%s", buf);
+	}
+	printf ("\r\n");
+	printf ("\r\n");
+	printf ("\33[2K\r");
+	system ("stty cooked echo\n");
+}
+
 int main()
 {
 	FILE *fp = NULL;
@@ -83,6 +167,10 @@ int main()
 	printf ("Total number of words: %d\n", tot);
 
 	fclose(fp);
+
+	dict(root);
+	tree_free(root);
+
 	return 0;
 }
 
