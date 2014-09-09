@@ -160,7 +160,7 @@ int main()
 	void *root = NULL;
 	int tot = 0;
 
-	fp = fopen("words.txt", "r");
+	fp = fopen("words-unsorted.txt", "r");
 	root = populate_tree(fp);
 	tot = find_max_words(root);
 

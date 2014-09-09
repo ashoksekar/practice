@@ -2,19 +2,54 @@
 #include <stdlib.h>
 
 typedef struct node_s {
-	unsigned int data;
+	void *data;
 	struct node_s *left;
 	struct node_s *right;
 	struct node_s *parent;
 } node_t;
 
-static void add_node(node_t **root, unsigned int data)
+void _height(node_t *n, int h, int *max)
+{
+	if (!n)
+		return;
+	_height(n->left, h, max);
+	h += 1;
+	if (*max < h)
+		*max = h;
+	_height(n->right, h, max);
+}
+
+int height_tree(node_t *n)
+{
+	int max = 0;
+	_height(n, 0, &max);
+	return max;
+}
+
+void left_rotate(node_t *n)
+{
+	node_t *parent = n->parent;
+	if 
+
+	assert (parent->right == n);
+	
+
+	
+}
+
+int avl_check(node_t *n)
+{
+	if ((height_tree(n->left) - height_tree(n->right)) 
+
+}
+
+void *add_node(node_t *root, void *data)
 {
 	node_t *n = NULL;
 	n = (node_t *)calloc(1, sizeof(node_t));
 	n->data = data;
 	if (n) {
-		node_t *t = *root;
+		node_t *t = root;
 		while(1) {
 			if (t) {
 				if (data > t->data) {
@@ -37,52 +72,24 @@ static void add_node(node_t **root, unsigned int data)
 				}
 			}
 			else {
-				*root = n;
+				root = n;
 				break;
 			}
 		}
 	}
-	return;
+	return n;
 }
-static void print_tree(node_t *n)
+
+void *traverse_tree(node_t *n, int (*cb)(void *, void *), void *arg)
 {
+	node_t *t = NULL;
 	if (n == NULL)
-		return;
-	print_tree(n->left);
-	printf ("%d ", n->data);
-	print_tree(n->right);
+		return n;
+
+	if ((t = traverse_tree(n->left, cb, arg)) != NULL)
+		return t;
+	if (cb(n->data, arg))
+		return n;
+	if ((t = traverse_tree(n->right, cb, arg)) != NULL)
+		return t;
 }
-
-int main()
-{
-	node_t *root = NULL;
-	int opt = 0;
-	while (1) {
-		printf ("1. Add node\n");
-		printf ("2. Print tree\n");
-		printf ("3. Exit\n");
-		printf ("Enter your option: ");
-		scanf("%d",&opt);
-		switch (opt) {
-			unsigned int data;
-			case 1:
-				printf ("Enter data: ");
-				scanf("%u",&data);
-				add_node(&root, data);
-				break;
-			case 2:
-				print_tree(root);
-				printf ("\n");
-				break;
-			case 3:
-				exit(0);
-				break;
-			default:
-				printf ("Unrecognized option!\n");
-				break;
-		}
-	}
-	return 0;
-
-}
-
